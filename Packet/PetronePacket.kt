@@ -5,8 +5,7 @@ package kr.co.byrobot.openapi.Packet
  */
 
 interface PetronePacket {
-    val size: Int
-    val index: Int
+    var size: Int
 
     fun decode(data: PetroneByteArray) : Boolean
     fun encode() : PetroneByteArray

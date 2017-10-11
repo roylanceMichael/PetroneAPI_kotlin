@@ -8,8 +8,7 @@ import kr.co.byrobot.openapi.Enum.PetroneDataType
  * Created by byrobot on 2017. 9. 27..
  */
 class PetronePacketTrimAll : PetronePacket {
-    override val size: Int = 10
-    override val index: Int = 0
+    override var size: Int = 10
 
     var flight: PetroneTrimFlight = PetroneTrimFlight()
     var drive: PetroneTrimDrive = PetroneTrimDrive()

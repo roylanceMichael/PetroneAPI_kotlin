@@ -8,8 +8,7 @@ import kr.co.byrobot.openapi.Packet.PetronePacket
  * Created by byrobot on 2017. 9. 27..
  */
 class PetronePacketLedMode2 : PetronePacket {
-    override val size: Int = 6
-    override val index: Int = 0
+    override var size: Int = 6
 
     var led1: PetroneLedModeBase = PetroneLedModeBase()
     var led2: PetroneLedModeBase = PetroneLedModeBase()

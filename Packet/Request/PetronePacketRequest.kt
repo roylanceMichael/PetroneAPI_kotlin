@@ -9,8 +9,7 @@ import kr.co.byrobot.openapi.Packet.PetronePacket
  */
 
 abstract class PetronePacketRequest : PetronePacket {
-    override val size: Int = 1
-    override val index: Int = 0
+    override var size: Int = 1
     protected var requestType: PetroneDataType = PetroneDataType.None;
 
     constructor() {

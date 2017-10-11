@@ -6,7 +6,7 @@ import kr.co.byrobot.openapi.Data.*
 import kr.co.byrobot.openapi.Enum.*
 import kr.co.byrobot.openapi.Packet.LedCommand.*
 import kr.co.byrobot.openapi.Packet.Request.*
-import kr.co.byrobot.openapi.Packet.PetronePacket
+import kr.co.byrobot.openapi.Packet.*
 import org.jetbrains.anko.doAsync
 
 /**
@@ -71,9 +71,9 @@ class Petrone {
             onSend()
 
             if (petroneBLE!!.isConnected()) {
-                // callback message connected.
+                this.delegate?.connectionComplete("PETRONE BLE Conntected.")
             } else  if (petroneWIFI!!.isConnected()) {
-                // callback message connected.
+                this.delegate?.connectionComplete("PETRONE FPV Conntected.")
             }
         } else {
             controller = null
@@ -101,10 +101,50 @@ class Petrone {
                     sendPacket(PetronePacketStatus())
                 }
 
+                if( packetFrame % 2 == 0L ) {
+                    if ( controlValue.throttleTimer > 0 || controlValue.yawTimer > 0 || controlValue.pitchTimer > 0 || controlValue.rollTimer > 0 ) {
+                        val packet:PacketControl =  PacketControl(controlValue.throttle, controlValue.yaw, controlValue.pitch, controlValue.roll)
+
+                        sendPacket(packet)
+
+                        consumeControlTime(sendInterval)
+                    }
+                }
+
                 packetFrame += 1
 
                 Thread.sleep( sendInterval )
             }
+        }
+    }
+
+    private fun consumeControlTime( diffTime:Long ) {
+        this.controlValue.throttleTimer -= diffTime.toInt()
+        this.controlValue.yawTimer -= diffTime.toInt()
+        this.controlValue.pitchTimer -= diffTime.toInt()
+        this.controlValue.rollTimer -= diffTime.toInt()
+
+        if (this.controlValue.throttleTimer <= 0) {
+            this.controlValue.throttle = 0
+            this.controlValue.throttleTimer = 0
+        }
+        if (this.controlValue.yawTimer <= 0) {
+            this.controlValue.yaw = 0
+            this.controlValue.yawTimer = 0
+        }
+        if (this.controlValue.pitchTimer <= 0) {
+            this.controlValue.roll = 0
+            this.controlValue.pitchTimer = 0
+        }
+        if (this.controlValue.rollTimer <= 0) {
+            this.controlValue.roll = 0
+            this.controlValue.rollTimer = 0
+        }
+
+        if ( controlValue.throttleTimer == 0 && controlValue.yawTimer == 0 && controlValue.pitchTimer == 0 && controlValue.rollTimer == 0 ) {
+            val packet:PacketControl =  PacketControl(0,0,0,0)
+
+            sendPacket(packet)
         }
     }
 
@@ -352,6 +392,146 @@ class Petrone {
         this.sendPacket(packet)
     }
 
+    fun throttle(value:Int, millisecond:Int = 100) {
+        controlValue.throttle = value
+        controlValue.throttleTimer = millisecond
+    }
+
+    fun yaw(value:Int, millisecond:Int = 100) {
+        controlValue.yaw = value
+        controlValue.yawTimer = millisecond
+    }
+
+    fun roll(value:Int, millisecond:Int = 100) {
+        controlValue.roll = value
+        controlValue.rollTimer = millisecond
+    }
+
+    fun pitch(value:Int, millisecond:Int = 100) {
+        controlValue.pitch = value
+        controlValue.pitchTimer = millisecond
+    }
+
+    fun control(forward:Int, leftRight:Int, millisecond:Int = 100) {
+        controlValue.throttle = forward
+        controlValue.throttleTimer = millisecond
+        controlValue.yaw = 0
+        controlValue.yawTimer = 0
+        controlValue.roll = leftRight
+        controlValue.rollTimer = millisecond
+        controlValue.pitch = 0
+        controlValue.pitchTimer = 0
+    }
+
+
+    fun control(throttle:Int, yaw:Int, roll:Int, pitch:Int, millisecond:Int = 100) {
+        controlValue.throttle = throttle
+        controlValue.throttleTimer = millisecond
+        controlValue.yaw = yaw
+        controlValue.yawTimer = millisecond
+        controlValue.roll = roll
+        controlValue.rollTimer = millisecond
+        controlValue.pitch = pitch
+        controlValue.pitchTimer = millisecond
+    }
+
+    fun changeMode(mode:PetroneMode) {
+        var packet:PetronePacketModeChange = PetronePacketModeChange()
+        packet.mode = mode
+        this.sendPacket(packet)
+    }
+
+    fun changeTrim(throttle:Short, yaw:Short, roll:Short, pitch:Short, wheel:Short) {
+        var packet:PetronePacketChangeTrim = PetronePacketChangeTrim()
+        packet.flight.throttle = throttle
+        packet.flight.yaw = yaw
+        packet.flight.roll = roll
+        packet.flight.pitch = pitch
+        packet.drive.wheel = wheel
+
+        this.sendPacket(packet)
+    }
+
+    fun changeTrim(throttle:Short, yaw:Short, roll:Short, pitch:Short) {
+        var packet:PetronePacketChangeTrim = PetronePacketChangeTrim()
+        packet.flight.throttle = throttle
+        packet.flight.yaw = yaw
+        packet.flight.roll = roll
+        packet.flight.pitch = pitch
+        if( this.trim != null ) {
+            packet.drive.wheel = this.trim!!.drive.wheel
+        }
+
+        this.sendPacket(packet)
+    }
+
+    fun changeTrim(wheel:Short) {
+        var packet:PetronePacketChangeTrim = PetronePacketChangeTrim()
+        packet.drive.wheel = wheel
+
+        if( this.trim != null ) {
+            packet.flight.throttle = this.trim!!.flight.throttle
+            packet.flight.yaw = this.trim!!.flight.yaw
+            packet.flight.roll = this.trim!!.flight.roll
+            packet.flight.pitch = this.trim!!.flight.pitch
+        }
+        this.sendPacket(packet)
+    }
+
+    fun color(red:Byte, green:Byte, blue:Byte) {
+        var packet:PetronePacketLedColor2 = PetronePacketLedColor2()
+        packet.led1.mode = PetroneLightMode.EyeHold.mode
+        packet.led1.red = red
+        packet.led1.green = green
+        packet.led1.blue = blue
+        packet.led1.interval = 255.toByte()
+        packet.led2.mode = PetroneLightMode.ArmHold.mode
+        packet.led2.red = red
+        packet.led2.green = green
+        packet.led2.blue = blue
+        packet.led2.interval = 255.toByte()
+
+        this.sendPacket(packet)
+    }
+
+    fun color(eyeRed:Byte, eyeGreen:Byte, eyeBlue:Byte, armRed:Byte, armGreen:Byte, armBlue:Byte) {
+        var packet:PetronePacketLedColor2 = PetronePacketLedColor2()
+        packet.led1.mode = PetroneLightMode.EyeHold.mode
+        packet.led1.red = eyeRed
+        packet.led1.green = eyeGreen
+        packet.led1.blue = eyeBlue
+        packet.led1.interval = 255.toByte()
+        packet.led2.mode = PetroneLightMode.ArmHold.mode
+        packet.led2.red = armRed
+        packet.led2.green = armGreen
+        packet.led2.blue = armBlue
+        packet.led2.interval = 255.toByte()
+
+        this.sendPacket(packet)
+    }
+
+    fun colorForEye(red:Byte, green:Byte, blue:Byte) {
+        var packet:PetronePacketLedColor = PetronePacketLedColor()
+        packet.led.mode = PetroneLightMode.EyeHold.mode
+        packet.led.red = red
+        packet.led.green = green
+        packet.led.blue = blue
+        packet.led.interval = 255.toByte()
+
+        this.sendPacket(packet)
+    }
+
+    fun colorForArm(red:Byte, green:Byte, blue:Byte) {
+        var packet:PetronePacketLedColor = PetronePacketLedColor()
+        packet.led.mode = PetroneLightMode.ArmHold.mode
+        packet.led.red = red
+        packet.led.green = green
+        packet.led.blue = blue
+        packet.led.interval = 255.toByte()
+
+        this.sendPacket(packet)
+    }
+    
     fun requestState() {
         val packet:PetronePacketStatus = PetronePacketStatus()
         this.sendPacket(packet)
