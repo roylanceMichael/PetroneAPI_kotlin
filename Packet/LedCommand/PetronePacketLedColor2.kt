@@ -1,0 +1,56 @@
+package kr.co.byrobot.openapi.Packet.LedCommand
+
+import kr.co.byrobot.openapi.Data.PetroneLedBase
+import kr.co.byrobot.openapi.Enum.PetroneDataType
+import kr.co.byrobot.openapi.Packet.PetroneByteArray
+import kr.co.byrobot.openapi.Packet.PetronePacket
+
+/**
+ * Created by byrobot on 2017. 9. 27..
+ */
+class PetronePacketLedColor2 : PetronePacket {
+    override val size: Int = 10
+    override val index: Int = 0
+
+    var led1: PetroneLedBase = PetroneLedBase()
+    var led2: PetroneLedBase = PetroneLedBase()
+
+    override fun decode(data: PetroneByteArray) : Boolean{
+        return true
+    }
+
+    override fun encode() : PetroneByteArray {
+        var data : PetroneByteArray = PetroneByteArray(size + 1)
+        data.set(value = PetroneDataType.LedModeColor)
+        data.set(value = led1.mode)
+        data.set(value = led1.red)
+        data.set(value = led1.green)
+        data.set(value = led1.blue)
+        data.set(value = led1.interval)
+        data.set(value = led2.mode)
+        data.set(value = led2.red)
+        data.set(value = led2.green)
+        data.set(value = led2.blue)
+        data.set(value = led2.interval)
+
+        return data
+    }
+
+    override fun encodeSerial() : PetroneByteArray {
+        var data : PetroneByteArray = PetroneByteArray(size + 2);
+        data.set(value = PetroneDataType.LedModeColor)
+        data.set(value = size)
+        data.set(value = led1.mode)
+        data.set(value = led1.red)
+        data.set(value = led1.green)
+        data.set(value = led1.blue)
+        data.set(value = led1.interval)
+        data.set(value = led2.mode)
+        data.set(value = led2.red)
+        data.set(value = led2.green)
+        data.set(value = led2.blue)
+        data.set(value = led2.interval)
+
+        return data
+    }
+}
