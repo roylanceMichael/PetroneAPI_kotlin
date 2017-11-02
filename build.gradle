@@ -1,0 +1,126 @@
+buildscript {
+  ext.kotlin_version = '1.1.51'
+
+  repositories {
+    jcenter()
+  }
+  dependencies {
+    classpath 'com.android.tools.build:gradle:2.3.0'
+    classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+    classpath 'com.github.dcendents:android-maven-gradle-plugin:1.5'
+  }
+}
+
+plugins {
+  id "com.jfrog.bintray" version "1.7"
+}
+
+allprojects {
+  repositories {
+    jcenter()
+  }
+  apply plugin: 'com.android.library'
+  apply plugin: 'kotlin-android'
+  apply plugin: 'kotlin-android-extensions'
+  apply plugin: 'com.github.dcendents.android-maven'
+  apply plugin: "maven"
+}
+
+group = "$group"
+version = "$major.$minor"
+
+android {
+  compileSdkVersion 25
+  buildToolsVersion "25.0.2"
+
+  defaultConfig {
+    minSdkVersion 19
+    targetSdkVersion 23
+    versionCode 5
+    versionName "1.1.0"
+    multiDexEnabled true
+    vectorDrawables.useSupportLibrary = true
+  }
+}
+
+task updateVersion() {
+  doLast {
+    if (System.env.PLUGIN_MAJOR != null && System.env.PLUGIN_MINOR != null) {
+      println("setting property to " + System.env.PLUGIN_MAJOR + "." + System.env.PLUGIN_MINOR)
+      Properties properties = new Properties()
+      properties.load(project.rootProject.file('gradle.properties').newDataInputStream())
+      properties.setProperty("major", System.env.PLUGIN_MAJOR)
+      properties.setProperty("minor", System.env.PLUGIN_MINOR)
+
+      def outputStream = project.rootProject.file('gradle.properties').newDataOutputStream()
+      properties.store(outputStream,
+          "set version: ${System.env.PLUGIN_MAJOR}.${System.env.PLUGIN_MINOR}")
+      outputStream.flush()
+      outputStream.close()
+    }
+  }
+}
+
+install {
+  repositories.mavenInstaller {
+    pom.project {
+      name "petroneapi"
+      description 'petrone api in kotlin'
+      url "${githubRepo_}"
+      inceptionYear '2017'
+
+      packaging 'aar'
+      groupId "kr.co.byrobot"
+      artifactId "petroneapi"
+      version "${major}.${minor}"
+
+      licenses {
+        license {
+          name 'The Apache Software License, Version 2.0'
+          url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+          distribution 'repo'
+        }
+      }
+      scm {
+        connection "${githubRepo_}"
+        url "${githubRepo_}"
+      }
+      developers {
+        developer {
+          name 'roylance.michael@gmail.com'
+        }
+      }
+    }
+  }
+}
+
+bintray {
+  user = System.getenv('BINTRAY_USER')
+  key = System.getenv('BINTRAY_KEY')
+  configurations = ['archives']
+  pkg {
+    publish = true
+    repo = "${repoName_}"
+    name = "${group}.${rootProject.name}"
+    userOrg = user
+    licenses = ["${license_}"]
+    labels = [rootProject.name]
+    publicDownloadNumbers = true
+    vcsUrl = "${githubRepo_}"
+    version {
+      name = "$major.$minor"
+    }
+  }
+}
+
+bintrayUpload.dependsOn install
+
+dependencies {
+  testCompile 'junit:junit:4.12'
+  compile 'org.jetbrains.anko:anko:0.10.2'
+  compile "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
+}
+
+repositories {
+  mavenCentral()
+}
