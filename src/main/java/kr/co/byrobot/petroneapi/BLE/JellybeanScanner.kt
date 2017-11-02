@@ -58,10 +58,8 @@ class JellybeanScanner(context: Context, callback: PetroneBLEScanCallback) : Bas
 
 
   private val leScanCallback = BluetoothAdapter.LeScanCallback { device, rssi, scanRecord ->
-    device?.let {
-      d
-      scanRecord?.let {
-        sr
+    device?.let { d ->
+      scanRecord?.let { sr ->
         mScanCallback?.onBleScan(d, rssi, sr)
       }
     }
