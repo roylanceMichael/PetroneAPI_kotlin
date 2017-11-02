@@ -18,54 +18,57 @@ import android.content.Context
  * Created by byrobot on 2017. 7. 18..
  */
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
-class JellybeanScanner : BaseScanner{
-    private var mBluetoothAdapter: BluetoothAdapter? = null
-    private var mScanCallback : PetroneBLEScanCallback? = null
+class JellybeanScanner(context: Context, callback: PetroneBLEScanCallback) : BaseScanner() {
+  private var mBluetoothAdapter: BluetoothAdapter? = null
+  private var mScanCallback: PetroneBLEScanCallback? = callback
 
-    init {
+  override fun onStartBleScan() {
+    mBluetoothAdapter?.let {
+      if (it.isEnabled()) {
+        isScanning = it.startLeScan(leScanCallback)
+      } else {
+        mScanCallback?.onBleScanFailed(BLEScanState.BLUETOOTH_OFF)
+      }
+    }
+  }
+
+  override fun onStartBleScan(timeoutMillis: Long) {
+    val delay = if (timeoutMillis == 0L) defaultTimeout else timeoutMillis
+    mBluetoothAdapter?.let {
+      if (it.isEnabled) {
+        isScanning = it.startLeScan(leScanCallback)
+        timeoutHandler.postDelayed(timeoutRunnable, delay);
+      } else {
+        mScanCallback?.onBleScanFailed(BLEScanState.BLUETOOTH_OFF)
+      }
     }
 
-    constructor(context: Context, callback: PetroneBLEScanCallback ) {
-        mScanCallback = callback
+  }
 
-        val bluetoothMgr = context.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
-        mBluetoothAdapter = bluetoothMgr.getAdapter()
+  override fun onStopBleScan() {
+    if (isScanning) {
+      isScanning = false;
+      mBluetoothAdapter?.stopLeScan(leScanCallback)
     }
+  }
 
-    override fun onStartBleScan() {
-        val delay = defaultTimeout
-        if (mBluetoothAdapter != null && mBluetoothAdapter!!.isEnabled()){
-            isScanning = mBluetoothAdapter!!.startLeScan(leScanCallback)
-        } else {
-            mScanCallback?.onBleScanFailed(BLEScanState.BLUETOOTH_OFF)
-        }
+  override fun onBleScanFailed(scanState: BLEScanState) {
+    mScanCallback?.onBleScanFailed(BLEScanState.SCAN_TIMEOUT)
+  }
+
+
+  private val leScanCallback = BluetoothAdapter.LeScanCallback { device, rssi, scanRecord ->
+    device?.let {
+      d
+      scanRecord?.let {
+        sr
+        mScanCallback?.onBleScan(d, rssi, sr)
+      }
     }
+  }
 
-    override fun onStartBleScan(timeoutMillis: Long) {
-        val delay = if (timeoutMillis === 0L) defaultTimeout else timeoutMillis
-        if (mBluetoothAdapter != null && mBluetoothAdapter!!.isEnabled()){
-            isScanning = mBluetoothAdapter!!.startLeScan(leScanCallback)
-            timeoutHandler.postDelayed(timeoutRunnable, delay);
-        } else {
-            mScanCallback?.onBleScanFailed(BLEScanState.BLUETOOTH_OFF)
-        }
-    }
-
-    override fun onStopBleScan() {
-        if( isScanning ) {
-            isScanning = false;
-            mBluetoothAdapter!!.stopLeScan(leScanCallback)
-        }
-    }
-
-    override fun onBleScanFailed(scanState: BLEScanState) {
-        mScanCallback!!.onBleScanFailed(BLEScanState.SCAN_TIMEOUT)
-    }
-
-
-    private val leScanCallback = object : BluetoothAdapter.LeScanCallback {
-        override fun onLeScan(device: BluetoothDevice?, rssi: Int, scanRecord: ByteArray?) {
-            mScanCallback!!.onBleScan(device!!, rssi, scanRecord!!)
-        }
-    }
+  init {
+    val bluetoothMgr = context.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
+    mBluetoothAdapter = bluetoothMgr.adapter
+  }
 }

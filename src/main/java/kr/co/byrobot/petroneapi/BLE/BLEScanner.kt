@@ -7,34 +7,27 @@ import android.content.Context
 /**
  * Created by byrobot on 2017. 7. 18..
  */
-class BLEScanner {
-    var bleScanner: BaseScanner? = null
+class BLEScanner(context: Context, callback: PetroneBLEScanCallback) {
+  var bleScanner: BaseScanner = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+    LollipopScanner(callback)
+  } else {
+    JellybeanScanner(context, callback)
+  }
 
-    init {
-    }
+  fun isScanning(): Boolean {
+    return bleScanner.isScanning
+  }
 
-    constructor(context: Context, callback: PetroneBLEScanCallback ) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            bleScanner = LollipopScanner(callback)
-        } else {
-            bleScanner = JellybeanScanner(context, callback)
-        }
-    }
+  fun startBleScan() {
+    bleScanner.onStartBleScan()
+  }
 
+  fun startBleScan(timeoutMillis: Long) {
+    bleScanner.onStartBleScan(timeoutMillis)
+  }
 
-    fun isScanning(): Boolean {
-        return bleScanner!!.isScanning
-    }
+  fun stopBleScan() {
+    bleScanner.onStopBleScan()
+  }
 
-    fun startBleScan() {
-        bleScanner!!.onStartBleScan()
-    }
-
-    fun startBleScan(timeoutMillis: Long) {
-        bleScanner!!.onStartBleScan(timeoutMillis)
-    }
-
-    fun stopBleScan() {
-        bleScanner!!.onStopBleScan()
-    }
 }
