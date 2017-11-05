@@ -9,39 +9,39 @@ import java.util.concurrent.atomic.*
  * A selectable entity with selectable NIO [channel], [interestedOps] subscriptions
  */
 interface Selectable : Closeable, DisposableHandle {
-    val suspensions: InterestSuspensionsMap
+  val suspensions: InterestSuspensionsMap
 
-    /**
-     * associated channel
-     */
-    val channel: SelectableChannel
+  /**
+   * associated channel
+   */
+  val channel: SelectableChannel
 
-    /**
-     * current interests
-     */
-    val interestedOps: Int
+  /**
+   * current interests
+   */
+  val interestedOps: Int
 
-    /**
-     * Apply [state] flag of [interest] to [interestedOps]. Notice that is doesn't actually change selection key.
-     */
-    fun interestOp(interest: SelectInterest, state: Boolean)
+  /**
+   * Apply [state] flag of [interest] to [interestedOps]. Notice that is doesn't actually change selection key.
+   */
+  fun interestOp(interest: SelectInterest, state: Boolean)
 }
 
 abstract class SelectableBase : Selectable {
-    private val interestedOpsAtomic = AtomicInteger(0)
+  private val interestedOpsAtomic = AtomicInteger(0)
 
-    override val suspensions = InterestSuspensionsMap()
+  override val suspensions = InterestSuspensionsMap()
 
-    override val interestedOps: Int
-        get() = interestedOpsAtomic.get()
+  override val interestedOps: Int
+    get() = interestedOpsAtomic.get()
 
-    override fun interestOp(interest: SelectInterest, state: Boolean) {
-        val flag = interest.flag
+  override fun interestOp(interest: SelectInterest, state: Boolean) {
+    val flag = interest.flag
 
-        while (true) {
-            val before = interestedOpsAtomic.get()
-            val after = if (state) before or flag else before and flag.inv()
-            if (interestedOpsAtomic.compareAndSet(before, after)) break
-        }
+    while (true) {
+      val before = interestedOpsAtomic.get()
+      val after = if (state) before or flag else before and flag.inv()
+      if (interestedOpsAtomic.compareAndSet(before, after)) break
     }
+  }
 }

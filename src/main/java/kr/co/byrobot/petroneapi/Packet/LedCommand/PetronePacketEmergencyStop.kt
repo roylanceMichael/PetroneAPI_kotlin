@@ -7,9 +7,9 @@ import kr.co.byrobot.petroneapi.Enum.PetroneFlightEvent
 /**
  * Created by byrobot on 2017. 9. 27..
  */
-class PetronePacketEmergencyStop : PetronePacketLedCommand( PetroneCommand.FlightEvent ){
-    init {
-        lightColor = PetroneColors.Red
-        option = PetroneFlightEvent.Stop.event
-    }
+class PetronePacketEmergencyStop : PetronePacketLedCommand(PetroneCommand.FlightEvent) {
+  init {
+    lightColor = PetroneColors.Red
+    option = PetroneFlightEvent.Stop.event
+  }
 }

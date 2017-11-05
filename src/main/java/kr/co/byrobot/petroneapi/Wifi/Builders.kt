@@ -1,10 +1,14 @@
 package kr.co.byrobot.petroneapi.Wifi
 
-import kr.co.byrobot.petroneapi.Wifi.Impl.*
+import android.annotation.SuppressLint
 import kr.co.byrobot.petroneapi.Wifi.Impl.SocketImpl
-import kr.co.byrobot.petroneapi.Wifi.selector.*
-import java.net.*
-import java.nio.channels.*
+import kr.co.byrobot.petroneapi.Wifi.selector.SelectorManager
+import kr.co.byrobot.petroneapi.Wifi.selector.buildOrClose
+import java.net.SocketAddress
+import java.net.SocketOption
+import java.net.StandardSocketOptions
+import java.nio.channels.NetworkChannel
+import java.nio.channels.SelectableChannel
 
 class SocketOptions private constructor(private val allOptions: MutableMap<SocketOption<*>, Any?> = HashMap()) {
     internal constructor() : this(HashMap())
@@ -37,6 +41,7 @@ interface Configurable<out T : Configurable<T>> {
     }
 }
 
+@SuppressLint("NewApi")
 fun <T: Configurable<T>> T.tcpNoDelay(): T {
     return configure {
         this[StandardSocketOptions.TCP_NODELAY] = true

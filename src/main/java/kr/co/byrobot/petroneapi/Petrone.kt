@@ -180,18 +180,17 @@ class Petrone(context: Context) {
     }
 
     if (controlValue.throttleTimer == 0 && controlValue.yawTimer == 0 && controlValue.pitchTimer == 0 && controlValue.rollTimer == 0) {
-      val packet: PacketControl = PacketControl(0, 0, 0, 0)
-
+      val packet = PacketControl(0, 0, 0, 0)
       sendPacket(packet)
     }
   }
 
   fun isReadyForStart(): Boolean {
     return status?.let {
-      if (it.mode.isFlight()) {
-        return it.modeFlight == PetroneModeFlight.READY
+      return if (it.mode.isFlight()) {
+        it.modeFlight == PetroneModeFlight.READY
       } else {
-        return status?.modeDrive == PetroneModeDrive.READY
+        status?.modeDrive == PetroneModeDrive.READY
       }
     } ?: false
   }
@@ -249,7 +248,7 @@ class Petrone(context: Context) {
 
     var isExist = false
     petroneList.forEach { existDevice ->
-      if (device.ssid.equals(existDevice.ssid)) {
+      if (device.ssid == existDevice.ssid) {
         isExist = true
         existDevice.rssi = device.rssi
       }
@@ -418,7 +417,7 @@ class Petrone(context: Context) {
           this.range = PetroneRange()
         }
 
-        this.range?.parse(data);
+        this.range?.parse(data)
         this.range?.let {
           this.delegate?.recvFromPetroneResponse(it)
         }
@@ -430,27 +429,27 @@ class Petrone(context: Context) {
   }
 
   fun takeOff() {
-    val packet: PetronePacketTakeOff = PetronePacketTakeOff()
+    val packet = PetronePacketTakeOff()
     this.sendPacket(packet)
   }
 
   fun landing() {
-    val packet: PetronePacketLanding = PetronePacketLanding()
+    val packet = PetronePacketLanding()
     this.sendPacket(packet)
   }
 
   fun emergencyStop() {
-    val packet: PetronePacketEmergencyStop = PetronePacketEmergencyStop()
+    val packet = PetronePacketEmergencyStop()
     this.sendPacket(packet)
   }
 
   fun onSqure() {
-    val packet: PetronePacketSquare = PetronePacketSquare()
+    val packet = PetronePacketSquare()
     this.sendPacket(packet)
   }
 
   fun onRotate180() {
-    val packet: PetronePacketRotate180 = PetronePacketRotate180()
+    val packet = PetronePacketRotate180()
     this.sendPacket(packet)
   }
 
