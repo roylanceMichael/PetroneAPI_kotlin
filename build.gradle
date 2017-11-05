@@ -117,6 +117,10 @@ bintrayUpload.dependsOn install
 
 dependencies {
   testCompile 'junit:junit:4.12'
+
+  // https://mvnrepository.com/artifact/org.mockito/mockito-core
+  testCompile group: 'org.mockito', name: 'mockito-core', version: '2.11.0'
+
   compile 'org.jetbrains.anko:anko:0.10.2'
   compile "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
 }

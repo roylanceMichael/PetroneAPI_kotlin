@@ -1,7 +1,6 @@
 package kr.co.byrobot.petroneapi
 
 import kr.co.byrobot.petroneapi.Packet.PetronePacket
-import java.util.*
 
 /**
  * Created by byrobot on 2017. 6. 22..
